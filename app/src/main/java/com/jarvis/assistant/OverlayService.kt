@@ -125,10 +125,23 @@ class OverlayService : Service() {
             return
         }
         val text = svc.currentScreenText()
-        val i = Intent(this, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            .putExtra("analyze_text", text)
-        try { startActivity(i) } catch (e: Exception) {}
+        val pkg = JarvisAccessibilityService.lastApp
+        val prefs = Prefs(this)
+
+        if (pkg.isBlank() || prefs.isAppAllowed(pkg)) {
+            // already permitted (or unknown app) — analyze straight away
+            val i = Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra("analyze_text", text)
+            try { startActivity(i) } catch (e: Exception) {}
+        } else {
+            // ask the user's permission first
+            val i = Intent(this, ConsentActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra("pkg", pkg)
+                .putExtra("text", text)
+            try { startActivity(i) } catch (e: Exception) {}
+        }
     }
 
     private fun createChannel() {

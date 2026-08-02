@@ -44,4 +44,14 @@ class Prefs(context: Context) {
     var memory: String
         get() = sp.getString("memory", "") ?: ""
         set(v) = sp.edit().putString("memory", v).apply()
+
+    var allowedApps: Set<String>
+        get() = sp.getStringSet("allowedApps", emptySet()) ?: emptySet()
+        set(v) = sp.edit().putStringSet("allowedApps", HashSet(v)).apply()
+
+    fun isAppAllowed(pkg: String): Boolean = allowedApps.contains(pkg)
+
+    fun allowApp(pkg: String) {
+        val s = HashSet(allowedApps); s.add(pkg); allowedApps = s
+    }
 }

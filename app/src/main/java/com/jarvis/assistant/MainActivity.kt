@@ -88,16 +88,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleAnalyzeIntent(intent: android.content.Intent?) {
         val text = intent?.getStringExtra("analyze_text") ?: return
+        val app = intent.getStringExtra("analyze_app") ?: "your screen"
         intent.removeExtra("analyze_text")
+        intent.removeExtra("analyze_app")
         if (text.isBlank()) {
             addBubble("I couldn't read that screen. Make sure Accessibility is on for Jarvis.", false)
             return
         }
-        addBubble("Looking at your screen\u2026", false)
+        addBubble("Reading $app\u2026", false)
         b.statusText.text = "analyzing\u2026"
         lifecycleScope.launch {
-            val sys = "You are Jarvis. The user long-pressed the bubble while looking at another app. " +
-                "Here is the visible text from their screen. In 1-3 short sentences, tell them what they're " +
+            val sys = "You are Jarvis. The user asked you to look at what's on their screen. " +
+                "Here is the visible text. In 1-3 short sentences, tell them what they're " +
                 "looking at and anything useful, notable, or actionable. Be concise and helpful."
             val reply = GeminiClient.generate(
                 prefs.apiKey, prefs.model, sys,

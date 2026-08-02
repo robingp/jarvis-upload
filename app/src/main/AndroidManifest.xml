@@ -42,6 +42,12 @@
             android:exported="false"
             android:label="@string/settings_title" />
 
+        <activity
+            android:name=".ConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Jarvis.Dialog" />
+
         <service
             android:name=".WakeService"
             android:exported="false"
