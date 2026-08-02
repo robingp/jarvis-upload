@@ -68,11 +68,26 @@ class MainActivity : AppCompatActivity() {
         b.micBtn.setOnClickListener { startListening() }
 
         greet()
+        handleListenIntent(intent)
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleListenIntent(intent)
+    }
+
+    private fun handleListenIntent(intent: android.content.Intent?) {
+        if (intent?.getBooleanExtra("listen", false) == true) {
+            intent.removeExtra("listen")
+            b.micBtn.post { startListening() }
+        }
     }
 
     override fun onResume() {
         super.onResume()
         startWakeIfEnabled()
+        startBubbleIfEnabled()
         if (prefs.apiKey.isBlank()) {
             addBubble("Tip: open Settings (top-right gear) and paste your free Gemini key so I can think.", false)
         }
@@ -218,6 +233,15 @@ For anything else — questions, chat, advice — just reply normally in plain t
     private fun startWakeIfEnabled() {
         if (!prefs.wakeEnabled) return
         val svc = android.content.Intent(this, WakeService::class.java)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(svc) else startService(svc)
+        } catch (e: Exception) { /* ignore */ }
+    }
+
+    private fun startBubbleIfEnabled() {
+        if (!prefs.bubbleEnabled) return
+        if (!android.provider.Settings.canDrawOverlays(this)) return
+        val svc = android.content.Intent(this, OverlayService::class.java)
         try {
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(svc) else startService(svc)
         } catch (e: Exception) { /* ignore */ }

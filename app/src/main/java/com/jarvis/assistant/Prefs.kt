@@ -36,4 +36,8 @@ class Prefs(context: Context) {
     var wakePhrase: String
         get() = sp.getString("wakePhrase", "hey baby") ?: "hey baby"
         set(v) = sp.edit().putString("wakePhrase", v).apply()
+
+    var bubbleEnabled: Boolean
+        get() = sp.getBoolean("bubbleEnabled", false)
+        set(v) = sp.edit().putBoolean("bubbleEnabled", v).apply()
 }

@@ -28,6 +28,7 @@ class SettingsActivity : AppCompatActivity() {
         b.sosNumberInput.setText(p.sosNumber)
         b.wakeSwitch.isChecked = p.wakeEnabled
         b.wakePhraseInput.setText(p.wakePhrase)
+        b.bubbleSwitch.isChecked = p.bubbleEnabled
         b.versionText.text = "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})"
 
         b.saveBtn.setOnClickListener {
@@ -39,6 +40,7 @@ class SettingsActivity : AppCompatActivity() {
             p.sosNumber = b.sosNumberInput.text.toString().trim()
             p.wakeEnabled = b.wakeSwitch.isChecked
             p.wakePhrase = b.wakePhraseInput.text.toString().trim().ifEmpty { "hey baby" }
+            p.bubbleEnabled = b.bubbleSwitch.isChecked
 
             val svc = Intent(this, WakeService::class.java)
             if (p.wakeEnabled) {
@@ -46,6 +48,24 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 stopService(svc)
             }
+
+            val overlay = Intent(this, OverlayService::class.java)
+            if (p.bubbleEnabled) {
+                if (!android.provider.Settings.canDrawOverlays(this)) {
+                    Toast.makeText(this, "Allow 'Display over other apps' for Jarvis, then Save again.", Toast.LENGTH_LONG).show()
+                    startActivity(
+                        Intent(
+                            android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            android.net.Uri.parse("package:$packageName")
+                        )
+                    )
+                } else {
+                    if (Build.VERSION.SDK_INT >= 26) startForegroundService(overlay) else startService(overlay)
+                }
+            } else {
+                stopService(overlay)
+            }
+
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             finish()
         }
