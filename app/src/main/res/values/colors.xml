@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#070B12</color>
+    <color name="bg_bar">#0E1621</color>
+    <color name="accent">#00E5FF</color>
+    <color name="accent_dark">#0097A7</color>
+    <color name="bubble_user">#123243</color>
+    <color name="bubble_jarvis">#111A26</color>
+    <color name="text_primary">#E6F7FF</color>
+    <color name="text_dim">#7FA9BD</color>
+    <color name="white">#FFFFFF</color>
+</resources>
