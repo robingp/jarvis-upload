@@ -105,6 +105,28 @@
             android:backgroundTint="@color/accent"
             android:textColor="@color/bg" />
 
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#22FFFFFF" android:layout_marginTop="24dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/versionText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Version"
+            android:textColor="@color/text_dim"
+            android:textSize="13sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/updateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Check for updates"
+            android:textStyle="bold"
+            android:backgroundTint="@color/bubble_user"
+            android:textColor="@color/accent" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

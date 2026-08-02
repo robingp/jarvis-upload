@@ -4,8 +4,11 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.jarvis.assistant.databinding.ActivitySettingsBinding
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -25,6 +28,7 @@ class SettingsActivity : AppCompatActivity() {
         b.sosNumberInput.setText(p.sosNumber)
         b.wakeSwitch.isChecked = p.wakeEnabled
         b.wakePhraseInput.setText(p.wakePhrase)
+        b.versionText.text = "Version ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})"
 
         b.saveBtn.setOnClickListener {
             p.apiKey = b.apiKeyInput.text.toString().trim()
@@ -42,9 +46,49 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 stopService(svc)
             }
-
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             finish()
+        }
+
+        b.updateBtn.setOnClickListener { checkForUpdate() }
+    }
+
+    private fun checkForUpdate() {
+        b.updateBtn.isEnabled = false
+        b.updateBtn.text = "Checking\u2026"
+        lifecycleScope.launch {
+            val rel = UpdateManager.check()
+            b.updateBtn.isEnabled = true
+            b.updateBtn.text = "Check for updates"
+            if (rel == null) {
+                Toast.makeText(this@SettingsActivity, "You're on the latest version.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            AlertDialog.Builder(this@SettingsActivity)
+                .setTitle("Update available: ${rel.name}")
+                .setMessage(if (rel.notes.isBlank()) "A newer version is ready to install." else rel.notes)
+                .setPositiveButton("Update") { _, _ -> doUpdate(rel) }
+                .setNegativeButton("Later", null)
+                .show()
+        }
+    }
+
+    private fun doUpdate(rel: UpdateManager.Release) {
+        if (!UpdateManager.ensureInstallPermission(this)) {
+            Toast.makeText(this, "Allow installs for Jarvis, then tap Update again.", Toast.LENGTH_LONG).show()
+            return
+        }
+        b.updateBtn.isEnabled = false
+        b.updateBtn.text = "Downloading\u2026"
+        lifecycleScope.launch {
+            val file = UpdateManager.download(this@SettingsActivity, rel.apkUrl)
+            b.updateBtn.isEnabled = true
+            b.updateBtn.text = "Check for updates"
+            if (file == null) {
+                Toast.makeText(this@SettingsActivity, "Download failed. Try again.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            UpdateManager.install(this@SettingsActivity, file)
         }
     }
 }
