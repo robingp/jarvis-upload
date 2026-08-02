@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,7 +33,22 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
+      - name: Read version code
+        id: ver
+        run: echo "code=$(grep versionCode app/build.gradle | head -1 | grep -o '[0-9]\+')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.ver.outputs.code }}" \
+            app/build/outputs/apk/debug/app-debug.apk \
+            --title "Jarvis v${{ steps.ver.outputs.code }}" \
+            --notes "Automatic build" \
+          || gh release upload "v${{ steps.ver.outputs.code }}" \
+            app/build/outputs/apk/debug/app-debug.apk --clobber
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-apk
