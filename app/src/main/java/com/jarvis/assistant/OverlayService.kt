@@ -7,7 +7,9 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
@@ -20,6 +22,7 @@ class OverlayService : Service() {
 
     private var wm: WindowManager? = null
     private var bubble: View? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -66,21 +69,32 @@ class OverlayService : Service() {
             var touchX = 0f
             var touchY = 0f
             var moved = false
+            var longFired = false
+            val longPress = Runnable {
+                longFired = true
+                analyzeScreen()
+            }
             override fun onTouch(v: View?, e: MotionEvent): Boolean {
                 when (e.action) {
                     MotionEvent.ACTION_DOWN -> {
                         initialX = lp.x; initialY = lp.y
-                        touchX = e.rawX; touchY = e.rawY; moved = false
+                        touchX = e.rawX; touchY = e.rawY
+                        moved = false; longFired = false
+                        handler.postDelayed(longPress, 650)
                     }
                     MotionEvent.ACTION_MOVE -> {
                         val dx = (e.rawX - touchX).toInt()
                         val dy = (e.rawY - touchY).toInt()
-                        if (abs(dx) > 12 || abs(dy) > 12) moved = true
+                        if (abs(dx) > 12 || abs(dy) > 12) {
+                            moved = true
+                            handler.removeCallbacks(longPress)
+                        }
                         lp.x = initialX + dx; lp.y = initialY + dy
                         try { wm?.updateViewLayout(bubble, lp) } catch (ex: Exception) {}
                     }
                     MotionEvent.ACTION_UP -> {
-                        if (!moved) openJarvis()
+                        handler.removeCallbacks(longPress)
+                        if (!moved && !longFired) openJarvis()
                     }
                 }
                 return true
@@ -95,6 +109,25 @@ class OverlayService : Service() {
         val i = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             .putExtra("listen", true)
+        try { startActivity(i) } catch (e: Exception) {}
+    }
+
+    private fun analyzeScreen() {
+        val svc = JarvisAccessibilityService.instance
+        if (svc == null) {
+            // Accessibility not enabled yet — send user to enable it
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            } catch (e: Exception) {}
+            return
+        }
+        val text = svc.currentScreenText()
+        val i = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .putExtra("analyze_text", text)
         try { startActivity(i) } catch (e: Exception) {}
     }
 

@@ -69,18 +69,44 @@ class MainActivity : AppCompatActivity() {
 
         greet()
         handleListenIntent(intent)
+        handleAnalyzeIntent(intent)
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleListenIntent(intent)
+        handleAnalyzeIntent(intent)
     }
 
     private fun handleListenIntent(intent: android.content.Intent?) {
         if (intent?.getBooleanExtra("listen", false) == true) {
             intent.removeExtra("listen")
             b.micBtn.post { startListening() }
+        }
+    }
+
+    private fun handleAnalyzeIntent(intent: android.content.Intent?) {
+        val text = intent?.getStringExtra("analyze_text") ?: return
+        intent.removeExtra("analyze_text")
+        if (text.isBlank()) {
+            addBubble("I couldn't read that screen. Make sure Accessibility is on for Jarvis.", false)
+            return
+        }
+        addBubble("Looking at your screen\u2026", false)
+        b.statusText.text = "analyzing\u2026"
+        lifecycleScope.launch {
+            val sys = "You are Jarvis. The user long-pressed the bubble while looking at another app. " +
+                "Here is the visible text from their screen. In 1-3 short sentences, tell them what they're " +
+                "looking at and anything useful, notable, or actionable. Be concise and helpful."
+            val reply = GeminiClient.generate(
+                prefs.apiKey, prefs.model, sys,
+                listOf("user" to "Screen content:\n$text")
+            )
+            b.statusText.text = "online"
+            val out = if (reply.startsWith("ERROR:")) "\u26a0 " + reply.removePrefix("ERROR:").trim() else reply
+            addBubble(out, false)
+            if (!reply.startsWith("ERROR:")) speak(out)
         }
     }
 
