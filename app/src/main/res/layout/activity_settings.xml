@@ -26,6 +26,13 @@
             android:hint="Paste your free Gemini key"
             android:inputType="textNoSuggestions" />
 
+        <TextView style="@style/Label" android:text="AI Model" />
+        <EditText
+            android:id="@+id/modelInput"
+            style="@style/Field"
+            android:hint="gemini-2.5-flash"
+            android:inputType="textNoSuggestions" />
+
         <TextView style="@style/Label" android:text="Your Name" />
         <EditText
             android:id="@+id/nameInput"

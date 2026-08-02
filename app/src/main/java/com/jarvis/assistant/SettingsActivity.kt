@@ -16,6 +16,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val p = Prefs(this)
         b.apiKeyInput.setText(p.apiKey)
+        b.modelInput.setText(p.model)
         b.nameInput.setText(p.userName)
         b.cityInput.setText(p.city)
         b.sosNameInput.setText(p.sosName)
@@ -23,6 +24,7 @@ class SettingsActivity : AppCompatActivity() {
 
         b.saveBtn.setOnClickListener {
             p.apiKey = b.apiKeyInput.text.toString().trim()
+            p.model = b.modelInput.text.toString().trim().ifEmpty { "gemini-2.5-flash" }
             p.userName = b.nameInput.text.toString().trim()
             p.city = b.cityInput.text.toString().trim()
             p.sosName = b.sosNameInput.text.toString().trim()

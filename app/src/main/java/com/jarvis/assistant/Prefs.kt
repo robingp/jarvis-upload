@@ -24,4 +24,8 @@ class Prefs(context: Context) {
     var sosNumber: String
         get() = sp.getString("sosNumber", "") ?: ""
         set(v) = sp.edit().putString("sosNumber", v).apply()
+
+    var model: String
+        get() = sp.getString("model", "gemini-2.5-flash") ?: "gemini-2.5-flash"
+        set(v) = sp.edit().putString("model", v).apply()
 }

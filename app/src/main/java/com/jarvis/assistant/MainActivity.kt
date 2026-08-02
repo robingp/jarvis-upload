@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         b.statusText.text = "thinking…"
 
         lifecycleScope.launch {
-            val reply = GeminiClient.generate(prefs.apiKey, systemPrompt(), history)
+            val reply = GeminiClient.generate(prefs.apiKey, prefs.model, systemPrompt(), history)
             b.statusText.text = "online"
 
             if (reply.startsWith("ERROR:")) {

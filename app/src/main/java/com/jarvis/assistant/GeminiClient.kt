@@ -12,10 +12,8 @@ import java.util.concurrent.TimeUnit
 
 object GeminiClient {
 
-    // You can change this model name later if you like (e.g. gemini-1.5-flash).
-    private const val MODEL = "gemini-2.0-flash"
-    private const val URL =
-        "https://generativelanguage.googleapis.com/v1beta/models/$MODEL:generateContent?key="
+    private const val BASE =
+        "https://generativelanguage.googleapis.com/v1beta/models/"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
@@ -30,10 +28,13 @@ object GeminiClient {
      */
     suspend fun generate(
         apiKey: String,
+        model: String,
         systemPrompt: String,
         history: List<Pair<String, String>>
     ): String = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) return@withContext "ERROR: No API key. Open Settings and paste your free Gemini key."
+        val modelName = model.ifBlank { "gemini-2.5-flash" }
+        val url = BASE + modelName + ":generateContent?key=" + apiKey
 
         try {
             val contents = JSONArray()
@@ -53,7 +54,7 @@ object GeminiClient {
                 .put("contents", contents)
 
             val request = Request.Builder()
-                .url(URL + apiKey)
+                .url(url)
                 .post(body.toString().toRequestBody(JSON))
                 .build()
 
