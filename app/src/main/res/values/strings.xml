@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jarvis</string>
+    <string name="settings_title">Jarvis Settings</string>
+    <string name="hint_message">Type or tap the mic\u2026</string>
+</resources>
