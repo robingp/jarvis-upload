@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         prefs = Prefs(this)
 
         tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) tts?.language = Locale.getDefault()
+            if (status == TextToSpeech.SUCCESS) applySoftVoice(tts)
         }
 
         requestPermissionsIfNeeded()
@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        startWakeIfEnabled()
         if (prefs.apiKey.isBlank()) {
             addBubble("Tip: open Settings (top-right gear) and paste your free Gemini key so I can think.", false)
         }
@@ -198,6 +199,28 @@ For anything else — questions, chat, advice — just reply normally in plain t
         } else {
             tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "j")
         }
+    }
+
+    private fun applySoftVoice(engine: TextToSpeech?) {
+        engine ?: return
+        engine.language = Locale.US
+        engine.setSpeechRate(0.94f)
+        engine.setPitch(1.08f)
+        try {
+            val soft = engine.voices?.firstOrNull {
+                val n = it.name.lowercase(Locale.getDefault())
+                it.locale.language == "en" && (n.contains("female") || n.contains("f00") || n.contains("network"))
+            }
+            if (soft != null) engine.voice = soft
+        } catch (e: Exception) { /* keep default */ }
+    }
+
+    private fun startWakeIfEnabled() {
+        if (!prefs.wakeEnabled) return
+        val svc = android.content.Intent(this, WakeService::class.java)
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(svc) else startService(svc)
+        } catch (e: Exception) { /* ignore */ }
     }
 
     private fun addBubble(text: String, isUser: Boolean) {

@@ -65,6 +65,36 @@
             android:hint="e.g. +91XXXXXXXXXX"
             android:inputType="phone" />
 
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#22FFFFFF" android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Hands-free wake word (experimental)"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+            <Switch
+                android:id="@+id/wakeSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <TextView style="@style/Label" android:text="Wake phrase" />
+        <EditText
+            android:id="@+id/wakePhraseInput"
+            style="@style/Field"
+            android:hint="hey baby"
+            android:inputType="text" />
+
         <Button
             android:id="@+id/saveBtn"
             android:layout_width="match_parent"

@@ -28,4 +28,12 @@ class Prefs(context: Context) {
     var model: String
         get() = sp.getString("model", "gemini-2.5-flash") ?: "gemini-2.5-flash"
         set(v) = sp.edit().putString("model", v).apply()
+
+    var wakeEnabled: Boolean
+        get() = sp.getBoolean("wakeEnabled", false)
+        set(v) = sp.edit().putBoolean("wakeEnabled", v).apply()
+
+    var wakePhrase: String
+        get() = sp.getString("wakePhrase", "hey baby") ?: "hey baby"
+        set(v) = sp.edit().putString("wakePhrase", v).apply()
 }
