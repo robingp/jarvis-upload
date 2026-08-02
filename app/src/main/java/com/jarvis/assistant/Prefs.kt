@@ -40,4 +40,8 @@ class Prefs(context: Context) {
     var bubbleEnabled: Boolean
         get() = sp.getBoolean("bubbleEnabled", false)
         set(v) = sp.edit().putBoolean("bubbleEnabled", v).apply()
+
+    var memory: String
+        get() = sp.getString("memory", "") ?: ""
+        set(v) = sp.edit().putString("memory", v).apply()
 }

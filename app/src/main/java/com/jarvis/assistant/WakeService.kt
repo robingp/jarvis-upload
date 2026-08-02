@@ -218,14 +218,17 @@ class WakeService : Service() {
 
     private fun systemPrompt(): String {
         val name = prefs.userName.ifBlank { "the user" }
+        val memory = if (prefs.memory.isBlank()) "" else " Known about $name: ${prefs.memory}."
         return "You are Jarvis, a warm, soft-spoken personal assistant for $name. " +
             "Keep spoken replies to one or two short sentences. " +
             "For phone actions reply with ONLY a JSON object: " +
             "{\"action\":\"alarm\",\"hour\":7,\"minute\":0,\"label\":\"..\"}, " +
             "{\"action\":\"timer\",\"seconds\":600}, {\"action\":\"call\",\"contact\":\"..\"}, " +
             "{\"action\":\"sms\",\"contact\":\"..\",\"message\":\"..\"}, {\"action\":\"sos\"}, " +
-            "{\"action\":\"weather\"}, {\"action\":\"search\",\"query\":\"..\"}. " +
-            "Otherwise just reply in plain text. Never mix JSON with text."
+            "{\"action\":\"weather\"}, {\"action\":\"search\",\"query\":\"..\"}, " +
+            "{\"action\":\"open_app\",\"name\":\"..\"}, {\"action\":\"remember\",\"fact\":\"..\"}. " +
+            "Use remember when $name shares something worth recalling later. " +
+            "Otherwise just reply in plain text. Never mix JSON with text." + memory
     }
 
     private fun firstResult(bundle: Bundle?): String? {

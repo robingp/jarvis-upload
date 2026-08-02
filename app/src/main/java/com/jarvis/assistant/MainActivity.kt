@@ -183,6 +183,8 @@ class MainActivity : AppCompatActivity() {
     private fun systemPrompt(): String {
         val name = prefs.userName.ifBlank { "the user" }
         val now = SimpleDateFormat("EEE d MMM yyyy, HH:mm", Locale.getDefault()).format(Date())
+        val memory = if (prefs.memory.isBlank()) "" else
+            "\n\nThings you've learned about $name (use these naturally):\n${prefs.memory}"
         return """
 You are Jarvis, a warm, concise, slightly witty personal assistant for $name.
 Current date and time: $now.
@@ -198,9 +200,12 @@ When $name wants you to perform a phone action, reply with ONLY a JSON object an
 - Weather: {"action":"weather"}
 - Add a calendar event: {"action":"calendar","title":"Dentist","location":"Clinic"}
 - Web search: {"action":"search","query":"best pizza near me"}
+- Open an installed app: {"action":"open_app","name":"whatsapp"}
+- Remember a durable fact about $name (preferences, people, routines, anything worth recalling later): {"action":"remember","fact":"..."}
 
+When $name shares something personal worth keeping (a preference, a habit, a name, a plan), use the remember action so you can recall it in future chats.
 Compute relative times (e.g. "in 10 minutes", "tomorrow 6am") yourself using the current time.
-For anything else — questions, chat, advice — just reply normally in plain text. Never mix JSON and plain text.
+For anything else — questions, chat, advice — just reply normally in plain text. Never mix JSON and plain text.$memory
         """.trimIndent()
     }
 

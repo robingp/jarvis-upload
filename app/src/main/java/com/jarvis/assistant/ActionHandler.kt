@@ -25,6 +25,8 @@ object ActionHandler {
             "weather" -> WeatherClient.forCity(prefs.city)
             "calendar" -> addCalendar(context, action)
             "search" -> search(context, action)
+            "open_app" -> openApp(context, action)
+            "remember" -> remember(action, prefs)
             else -> action.optString("text", "Done.")
         }
     }
@@ -135,6 +137,47 @@ object ActionHandler {
         } catch (e: Exception) {
             "I couldn't open the browser."
         }
+    }
+
+    private fun openApp(context: Context, a: JSONObject): String {
+        val name = a.optString("name", "").trim().lowercase()
+        if (name.isBlank()) return "Which app should I open?"
+        val pm = context.packageManager
+        var bestPkg: String? = null
+        var bestLabel = ""
+        try {
+            val apps = pm.getInstalledApplications(0)
+            for (app in apps) {
+                val label = pm.getApplicationLabel(app).toString()
+                val l = label.lowercase()
+                if ((l == name || l.contains(name)) && pm.getLaunchIntentForPackage(app.packageName) != null) {
+                    // prefer the shortest matching label (closest match)
+                    if (bestPkg == null || l.length < bestLabel.length) {
+                        bestPkg = app.packageName; bestLabel = l
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            return "I couldn't look through your apps."
+        }
+        val pkg = bestPkg ?: return "I couldn't find an app called $name."
+        val i = pm.getLaunchIntentForPackage(pkg) ?: return "I couldn't open that app."
+        return try {
+            launch(context, i)
+            "Opening $bestLabel."
+        } catch (e: Exception) {
+            "I couldn't open that app."
+        }
+    }
+
+    private fun remember(a: JSONObject, prefs: Prefs): String {
+        val fact = a.optString("fact", "").trim()
+        if (fact.isBlank()) return "Okay."
+        val mem = prefs.memory
+        val updated = if (mem.isBlank()) fact else "$mem\n$fact"
+        // keep memory from growing unbounded
+        prefs.memory = updated.takeLast(4000)
+        return "Got it — I'll remember that."
     }
 
     private fun smsManager(context: Context): SmsManager {
