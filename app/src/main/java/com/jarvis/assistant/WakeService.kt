@@ -33,6 +33,8 @@ class WakeService : Service() {
     private lateinit var prefs: Prefs
     private var recognizer: SpeechRecognizer? = null
     private var tts: TextToSpeech? = null
+    private var audio: android.media.AudioManager? = null
+    private var muted = false
     private val main = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val history = mutableListOf<Pair<String, String>>()
@@ -46,6 +48,7 @@ class WakeService : Service() {
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
+        audio = getSystemService(android.media.AudioManager::class.java)
         createChannel()
         try {
             startForeground(NOTIF_ID, buildNotification())
@@ -85,7 +88,7 @@ class WakeService : Service() {
         recognizer = SpeechRecognizer.createSpeechRecognizer(this)
         recognizer?.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {}
-            override fun onBeginningOfSpeech() {}
+            override fun onBeginningOfSpeech() { unmuteBeep() }
             override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
@@ -157,14 +160,39 @@ class WakeService : Service() {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             }
+            muteBeep()
             recognizer?.cancel()
             recognizer?.startListening(intent)
+            main.postDelayed({ unmuteBeep() }, 1000)
         } catch (e: Exception) {
             main.postDelayed({ restartListening() }, 800)
         }
     }
 
+    private fun muteBeep() {
+        if (muted) return
+        try {
+            audio?.adjustStreamVolume(
+                android.media.AudioManager.STREAM_MUSIC,
+                android.media.AudioManager.ADJUST_MUTE, 0
+            )
+            muted = true
+        } catch (e: Exception) { /* DND or policy */ }
+    }
+
+    private fun unmuteBeep() {
+        if (!muted) return
+        try {
+            audio?.adjustStreamVolume(
+                android.media.AudioManager.STREAM_MUSIC,
+                android.media.AudioManager.ADJUST_UNMUTE, 0
+            )
+        } catch (e: Exception) { }
+        muted = false
+    }
+
     private fun speak(text: String) {
+        unmuteBeep()
         if (!ttsReady) {
             busy = false
             restartListening()
@@ -238,6 +266,7 @@ class WakeService : Service() {
     }
 
     override fun onDestroy() {
+        unmuteBeep()
         try { recognizer?.destroy() } catch (e: Exception) {}
         tts?.stop(); tts?.shutdown()
         super.onDestroy()
